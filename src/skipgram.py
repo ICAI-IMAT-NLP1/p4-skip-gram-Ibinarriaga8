@@ -127,9 +127,9 @@ class NegativeSamplingLoss(nn.Module):
 
         Args:
             input_vectors: A tensor containing input word vectors, 
-                            shape (batch_size, embed_size).
+                            shape (batch_size, embed_size ,1).
             output_vectors: A tensor containing output word vectors (positive samples), 
-                            shape (batch_size, embed_size).
+                            shape (batch_size, 1, embed_size).
             noise_vectors: A tensor containing vectors for negative samples, 
                             shape (batch_size, n_samples, embed_size).
 
@@ -137,14 +137,21 @@ class NegativeSamplingLoss(nn.Module):
             A tensor containing the average loss for the batch.
         """
 
+        
+
         # Compute log-sigmoid loss for correct classifications
         # TODO
-        out_loss = torch.sum(torch.log(torch.sigmoid(output_vectors @ input_vectors.T))) 
+        input_vectors = input_vectors.unsqueeze(2)
+        output_vectors = output_vectors.unsqueeze(1)
 
+        #bnm is batch matrix multiplication which 
+        out_loss = torch.log(torch.sigmoid(torch.bmm(output_vectors, input_vectors).squeeze(2)))
         # Compute log-sigmoid loss for incorrect classifications
-        # TODO
+        # TODOtorch
         #-noise_vectors; because result of dot product should be negative
-        noise_loss = torch.sum(torch.log(torch.sigmoid(-noise_vectors @ input_vectors.T))) 
+
+
+        noise_loss = torch.log(torch.sigmoid(-torch.bmm(noise_vectors, input_vectors).squeeze(2))).sum(dim=1)
 
         # Return the negative sum of the correct and noisy log-sigmoid losses, averaged over the batch
         # TODO

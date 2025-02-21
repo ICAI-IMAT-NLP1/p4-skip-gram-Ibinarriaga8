@@ -121,25 +121,18 @@ def get_batches(words: List[int], batch_size: int, window_size: int = 5) -> Gene
     """
 
     # TODO
-    for idx in range(0, len(words), batch_size): #iterates over the words in the dataset; steps of batch_size 
-        
-        #Window size chanched using sampling strategy
+    inputs = []
+    targets = []
 
-        r = np.random.randint(1, window_size+1)
-        start = max(0, idx - r)
-        end = min(len(words), idx + r + 1)
-        inputs: List[int] = []
-        targets: List[int] = []
+    for idx, word in enumerate(words):
+        target = get_target(words, idx, window_size)
+        inputs.extend([word] * len(target))
+        targets.extend(target)
 
-        for i in range(start, end):
-            if i != idx:
-                inputs.append(words[idx]) #contains input words repeated for each of their context words
-                targets.append(words[i]) #contains the corresponding target context words
-        
-        # Aquí deberías implementar la lógica para llenar inputs y targets
-        
-        yield inputs, targets #lazy execution: no se ejecuta hasta que se llama. Se suspende la ejecución y se reanuda
-        #donde se había suspendido
+        if len(inputs) >= batch_size:
+            yield inputs[:batch_size], targets[:batch_size]
+            inputs, targets = inputs[batch_size:], targets[batch_size:]
+            
 
 def cosine_similarity(embedding: torch.nn.Embedding, valid_size: int = 16, valid_window: int = 100, device: str = 'cpu'):
 
